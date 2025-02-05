@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: strapi
+      MYSQL_USER: strapi
+      MYSQL_PASSWORD: strapi
+    ports:
+      - "3308:3306"   # Expose MySQL to your host if needed for external access
+    networks:
+      - app-network
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: strapi-app
+    restart: always
+    environment:
+      DATABASE_HOST: mysql
+      DATABASE_PORT: 3306
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi
+      DATABASE_NAME: strapi
+      HOST: 0.0.0.0
+      PORT: 1337
+      APP_KEYS: ${APP_KEYS}   # Use the value from the .env file
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}   # Use the value from the .env file
+      API_TOKEN_SALT: ${API_TOKEN_SALT}   # Use the value from the .env file
+      TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT}   # Use the value from the .env file
+      JWT_SECRET: ${JWT_SECRET}   # Use the value from the .env file
+    ports:
+      - "1337:1337"  # Exposing Strapi to the host on port 1337
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+    volumes:
+      - ./.env:/app/.env  # Mount the .env file to the container
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
