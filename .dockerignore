@@ -1,3 +1,7 @@
+# Allow package.json and package-lock.json
+!package.json
+!package-lock.json
+
 **/.classpath
 **/.dockerignore
 **/.env
