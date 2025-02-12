@@ -1,26 +1,28 @@
 FROM node:18
 
-# Install dependencies
-RUN apt-get update && apt-get install libvips-dev -y
+# Install system dependencies for Strapi
+RUN apt-get update && apt-get install -y libvips-dev
 
-ARG NODE_ENV=development
-ENV NODE_ENV=${NODE_ENV}
+# Set working directory
+WORKDIR /opt/app
 
-WORKDIR /opt/
-
-# Copy correct dependency files
+# Copy package.json and install dependencies
 COPY package.json package-lock.json ./
+RUN npm install --production && npm install mysql2
 
-# Install npm dependencies with increased network timeout
-RUN npm install && npm install mysql2
-WORKDIR /opt/apt
-
-# Copy all project files
+# Copy application files
 COPY . .
 
-# Build the application
+# Set environment variables
+# ENV NODE_ENV=production
+# ENV PORT=1337
+# ENV HOST=0.0.0.0
+
+# Build Strapi app
 RUN npm run build
 
+# Expose port 8080 for Cloud Run
 EXPOSE 1337
 
-CMD [ "npm", "run", "develop" ]
+# Start the server (use start instead of develop)
+CMD ["npm", "run", "start"]

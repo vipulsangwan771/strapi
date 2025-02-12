@@ -13,8 +13,26 @@ services:
     ports:
       - "3308:3306" # Expose MySQL to your host if needed for external access
     volumes:
-      - mysql_data:/var/lib/mysql  # Persist MySQL data
-      - ./mysql-init:/docker-entrypoint-initdb.d  # Optional: MySQL init scripts (if needed)
+      - mysql_data:/var/lib/mysql # Persist MySQL data
+      - ./mysql-init:/docker-entrypoint-initdb.d # Optional: MySQL init scripts (if needed)
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: rootpassword
+      UPLOAD_LIMIT: 500M
+      PHP_UPLOAD_MAX_FILESIZE: 500M  # Increased file size
+      PHP_POST_MAX_SIZE: 500M
+    ports:
+      - "9002:80" # Access phpMyAdmin via http://localhost:8080
+    depends_on:
+      - mysql
     networks:
       - app-network
 
@@ -32,7 +50,7 @@ services:
       DATABASE_NAME: strapi
       HOST: 0.0.0.0
       PORT: 1337
-      APP_KEYS: ${APP_KEYS}  # Use .env variables
+      APP_KEYS: ${APP_KEYS} # Use .env variables
       ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
       API_TOKEN_SALT: ${API_TOKEN_SALT}
       TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT}
@@ -44,7 +62,8 @@ services:
     networks:
       - app-network
     volumes:
-      - ./.env:/app/.env  # Mount the .env file to the container
+      - ./.env:/app/.env # Mount the .env file to the container
+      - ./uploads:/app/public/uploads
 
 networks:
   app-network:
